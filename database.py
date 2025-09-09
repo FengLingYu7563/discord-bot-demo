@@ -83,9 +83,11 @@ def get_user_profile(user_id):
         else:
             print(f"⚠️ 用戶 {user_id} 的資料不存在，建立預設檔案。")
             default_profile = {
-                'id': user_id,
+                'discord_id': user_id,
                 'name': '',
-                'current_role': '小幫手'
+                'gpt_notes': '',
+                'current_role': '',
+                'keywords': []
             }
             doc_ref.set(default_profile)
             return default_profile

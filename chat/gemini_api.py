@@ -3,10 +3,31 @@ import discord
 import google.generativeai as genai #type: ignore
 from discord.ext import commands
 import os
+import json
+
+# model
+from database import get_user_profile, update_user_profile
 
 # 使用 os.path.join 來建構路徑，確保跨作業系統相容性
 KEYWORD_LIST_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "keyword_list.txt")
 SYSTEM_RULE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "system_rule.txt")
+
+# 新增一個輔助函數來解析 Gemini 的回應
+def parse_gemini_response(text):
+    """
+    解析 Gemini 回應，將訊息內容與資料庫更新資訊分離。
+    預期的格式是: "回覆訊息內容 <DATABASE_UPDATE> {"key": "value"}"
+    """
+    if '<DATABASE_UPDATE>' in text:
+        try:
+            message_content, json_str = text.split('<DATABASE_UPDATE>', 1)
+            # 嘗試解析 JSON 字串
+            data_to_update = json.loads(json_str.strip())
+            return message_content.strip(), data_to_update
+        except json.JSONDecodeError:
+            print(f"❌ 解析 Gemini 回應中的 JSON 失敗: {json_str}")
+            return text, None
+    return text, None
 
 def read_keyword_filter():
     """從檔案讀取關鍵字清單"""
@@ -71,8 +92,18 @@ def setup_gemini_api(bot: commands.Bot, api_key: str):
         # 檢查是否為空的輸入或包含關鍵字
         if not user_input or any(keyword in user_input for keyword in prompt_injection_keywords):
             user_input = "使用者沒有輸入"
-            
+                    
         try:
+            # 新增: 獲取使用者資料
+            user_id = str(message.author.id)
+            user_profile = get_user_profile(user_id)
+            
+            if user_profile:
+                user_info_prompt = f"使用者資訊: 名稱: {user_profile.get('name')}, 角色: {user_profile.get('current_role')}\n"
+                full_input = user_info_prompt + user_input
+            else:
+                full_input = user_input
+                
             # 顯示「機器人正在打字中...」
             async with message.channel.typing():
                 response = model.generate_content(
@@ -82,7 +113,31 @@ def setup_gemini_api(bot: commands.Bot, api_key: str):
                         temperature=1
                     )
                 )
-                full_response = response.text
+                
+                # 新增: 解析 Gemini 的回應
+                full_response, data_to_update = parse_gemini_response(response.text)
+
+                # 如果解析到要更新的資料，則呼叫更新函數
+                if data_to_update:
+                # 獲取舊的關鍵字和註解
+                    old_keywords = set(user_profile.get('keywords', []))
+                    old_notes = user_profile.get('gpt_notes', '')
+
+                    # 合併新的資料
+                    new_data = {}
+                    if 'keywords' in data_to_update:
+                        new_keywords = set(data_to_update['keywords'])
+                        merged_keywords = list(old_keywords.union(new_keywords))
+                        new_data['keywords'] = merged_keywords
+
+                    if 'gpt_notes' in data_to_update:
+                        new_notes = data_to_update['gpt_notes']
+                        # 這裡的邏輯需要根據你的需求調整
+                        # 最簡單的方式是替換，或者你也可以在這裡寫邏輯來合併句子
+                        new_data['gpt_notes'] = new_notes
+
+                    # 呼叫更新函數
+                    update_user_profile(user_id, new_data)
             
             await message.channel.send(full_response)
         except Exception as e:
