@@ -85,7 +85,6 @@ def get_user_profile(user_id):
             default_profile = {
                 'discord_id': user_id,
                 'name': '',
-                'gpt_notes': '',
                 'current_role': '',
                 'keywords': []
             }
