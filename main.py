@@ -30,9 +30,10 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 async def load_extensions():
     """載入所有 Cog 模組"""
-    # 定義要載入的 Cog 模組列表
+    # 要載入的 cog 模組列表
     extensions = [
-        "slash.chat.profile"  # 你的 Cog 指令模組
+        "slash.chat.profile",
+        "slash.mc.minecraft_control" 
     ]
     for extension in extensions:
         try:
