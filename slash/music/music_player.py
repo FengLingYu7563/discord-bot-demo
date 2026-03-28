@@ -218,9 +218,9 @@ class Music(commands.Cog):
             await asyncio.sleep(2)
             if not wavelink.Pool.nodes:
                 node = wavelink.Node(
-                    uri=os.getenv("LAVALINK_URI", "http://127.0.0.1:2333"),
-                    password=os.getenv("LAVALINK_PASSWORD"),
-                    inactive_player_timeout=300
+                uri=os.getenv("LAVALINK_URI", "https://lavalinkv4.serenetia.com"),
+                password=os.getenv("LAVALINK_PASSWORD", "https://seretia.link/discord"),
+                inactive_player_timeout=300
                 )
                 await wavelink.Pool.connect(nodes=[node], client=self.bot)
                 print("⏳ [Lavalink] 正在連線，等待節點就緒...")
