@@ -259,8 +259,7 @@ class Music(commands.Cog):
         # 單首循環
         if q.loop and q.current:
             await player.play(q.current)
-
-    @commands.Cog.listener()  
+  
     def build_now_playing_embed(self, vc: wavelink.Player, track: wavelink.Playable) -> discord.Embed:
         """建立含進度條的正在播放 embed"""
         position_ms = vc.position if vc else 0
