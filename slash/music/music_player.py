@@ -220,7 +220,6 @@ class Music(commands.Cog):
                 node = wavelink.Node(
                 uri=os.getenv("LAVALINK_URI", "https://lavalinkv4.serenetia.com"),
                 password=os.getenv("LAVALINK_PASSWORD", "https://seretia.link/discord"),
-                inactive_player_timeout=300
                 )
                 await wavelink.Pool.connect(nodes=[node], client=self.bot)
                 print("⏳ [Lavalink] 正在連線，等待節點就緒...")
@@ -261,13 +260,7 @@ class Music(commands.Cog):
         if q.loop and q.current:
             await player.play(q.current)
 
-    @commands.Cog.listener()
-    async def on_wavelink_inactive_player(self, player: wavelink.Player):
-        await player.disconnect()
-        q = self.get_queue(player.guild.id)
-        if q.text_channel:
-            await q.text_channel.send("閒置超過 3 分鐘，已自動退出語音頻道", delete_after=30)
-        
+    @commands.Cog.listener()  
     def build_now_playing_embed(self, vc: wavelink.Player, track: wavelink.Playable) -> discord.Embed:
         """建立含進度條的正在播放 embed"""
         position_ms = vc.position if vc else 0
@@ -353,6 +346,21 @@ class Music(commands.Cog):
                 await q.text_channel.send(embed=embed, view=view)
 
     # --- 斜線指令 ---
+    @app_commands.command(name="join", description="讓機器人加入你所在的語音頻道")
+    async def join(self, interaction: discord.Interaction):
+        if not interaction.user.voice:
+            return await interaction.response.send_message("請先進入語音頻道！", ephemeral=True)
+        channel = interaction.user.voice.channel
+        vc: wavelink.Player = interaction.guild.voice_client
+        if vc:
+            if vc.channel.id == channel.id:
+                return await interaction.response.send_message("我已經在這個頻道了！", ephemeral=True)
+            await vc.move_to(channel)
+            await interaction.response.send_message(f"已移動至 **{channel.name}**", ephemeral=True)
+        else:
+            await channel.connect(cls=wavelink.Player)
+            await interaction.response.send_message(f"已加入 **{channel.name}**", ephemeral=True)
+                
     @app_commands.command(name="play", description="點歌（連結或歌名）")
     async def play(self, interaction: discord.Interaction, query: str):
         await self.process_play(interaction, query)
