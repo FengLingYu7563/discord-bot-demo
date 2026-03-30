@@ -82,10 +82,10 @@ async def on_ready():
     
     # === bot Mount time ===
     async def update_presence():
-        set_start_date(datetime.now().strftime("%Y-%m-%d"))
+        await asyncio.to_thread(set_start_date, datetime.now().strftime("%Y-%m-%d"))
         while True:
             current_hours = (datetime.now() - bot_start_time).total_seconds() / 3600
-            total_hours = get_total_uptime() + current_hours
+            total_hours = await asyncio.to_thread(get_total_uptime) + current_hours
             days = int(total_hours // 24) + 1
             await bot.change_presence(
                 status=discord.Status.online,
@@ -97,8 +97,7 @@ async def on_ready():
                 )
             )
             await asyncio.sleep(3600)
-            add_uptime_hours(1)
-    asyncio.create_task(update_presence())
+            await asyncio.to_thread(add_uptime_hours, 1)
     # === bot Mount time ===
     
     print(f"已啟動status")
