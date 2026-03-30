@@ -218,13 +218,18 @@ class Music(commands.Cog):
             await asyncio.sleep(2)
             if not wavelink.Pool.nodes:
                 node = wavelink.Node(
-                uri=os.getenv("LAVALINK_URI", "https://lavalinkv4.serenetia.com"),
-                password=os.getenv("LAVALINK_PASSWORD", "https://seretia.link/discord"),
+                    uri=os.getenv("LAVALINK_URI", "https://lavalink.jirayu.net"),
+                    password=os.getenv("LAVALINK_PASSWORD", "youshallnotpass"),
                 )
-                await wavelink.Pool.connect(nodes=[node], client=self.bot)
+                await asyncio.wait_for(
+                    wavelink.Pool.connect(nodes=[node], client=self.bot),
+                    timeout=10
+                )
                 print("⏳ [Lavalink] 正在連線，等待節點就緒...")
+        except asyncio.TimeoutError:
+            print("[Lavalink] 連線逾時，跳過音樂功能")
         except Exception as e:
-            print(f"❌ [Lavalink] 連線失敗: {e}")
+            print(f"[Lavalink] 連線失敗: {e}")
 
     def get_queue(self, guild_id: int) -> MusicQueue:
         if guild_id not in self.queues:
@@ -364,6 +369,15 @@ class Music(commands.Cog):
         else:
             await channel.connect(cls=wavelink.Player)
             await interaction.response.send_message(f"已加入 **{channel.name}**", ephemeral=True)
+    
+    @app_commands.command(name="leave", description="讓機器人離開語音頻道")
+    async def leave(self, interaction: discord.Interaction):
+        vc: wavelink.Player = interaction.guild.voice_client
+        if not vc:
+            return await interaction.response.send_message("我沒有在任何語音頻道！", ephemeral=True)
+        vc.queue.clear()
+        await vc.disconnect()
+        await interaction.response.send_message("已離開語音頻道", ephemeral=True)
                 
     @app_commands.command(name="play", description="點歌（連結或歌名）")
     async def play(self, interaction: discord.Interaction, query: str):
