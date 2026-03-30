@@ -131,13 +131,13 @@ def update_user_profile(user_id, data):
         print(f" 更新用戶資料失敗: {e}")
         
 # === bot Mount time ===
-def add_uptime_seconds(seconds):
+def add_uptime_hours(hours=1):
     db = get_thread_local_db()
     try:
         doc_ref = db.collection('bot_stats').document('uptime')
         doc = doc_ref.get()
-        current = doc.to_dict().get('total_seconds', 0) if doc.exists else 0
-        doc_ref.set({'total_seconds': current + seconds})
+        current = doc.to_dict().get('total_hours', 0) if doc.exists else 0
+        doc_ref.set({'total_hours': current + hours}, merge=True)
     except Exception as e:
         print(f"更新運行時間失敗: {e}")
 
@@ -145,8 +145,18 @@ def get_total_uptime():
     db = get_thread_local_db()
     try:
         doc = db.collection('bot_stats').document('uptime').get()
-        return doc.to_dict().get('total_seconds', 0) if doc.exists else 0
+        return doc.to_dict().get('total_hours', 0) if doc.exists else 0
     except Exception as e:
         print(f"讀取運行時間失敗: {e}")
         return 0
+
+def set_start_date(date_str):
+    db = get_thread_local_db()
+    try:
+        doc_ref = db.collection('bot_stats').document('uptime')
+        doc = doc_ref.get()
+        if not doc.exists or 'start_date' not in doc.to_dict():
+            doc_ref.set({'start_date': date_str}, merge=True)
+    except Exception as e:
+        print(f"寫入啟動日期失敗: {e}")
 # === bot Mount time ===

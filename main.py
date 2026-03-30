@@ -15,7 +15,7 @@ from database import initialize_database
 
 # === bot Mount time ===
 from datetime import datetime
-from database import add_uptime_seconds, get_total_uptime
+from database import add_uptime_hours, get_total_uptime, set_start_date
 bot_start_time = datetime.now()
 # === bot Mount time ===
 
@@ -80,12 +80,13 @@ async def on_ready():
     
     # await bot.change_presence(status=discord.Status.online, activity=activity)
     
-    # === bot Mount time ===
+# === bot Mount time ===
     async def update_presence():
+        set_start_date(datetime.now().strftime("%Y-%m-%d"))
         while True:
-            current_seconds = (datetime.now() - bot_start_time).total_seconds()
-            total_seconds = get_total_uptime() + current_seconds
-            days = int(total_seconds // 86400) + 1
+            current_hours = (datetime.now() - bot_start_time).total_seconds() / 3600
+            total_hours = get_total_uptime() + current_hours
+            days = int(total_hours // 24) + 1
             await bot.change_presence(
                 status=discord.Status.online,
                 activity=discord.Activity(
@@ -96,7 +97,7 @@ async def on_ready():
                 )
             )
             await asyncio.sleep(3600)
-            add_uptime_seconds(3600)
+            add_uptime_hours(1)
     asyncio.create_task(update_presence())
     # === bot Mount time ===
     
