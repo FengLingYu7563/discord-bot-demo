@@ -9,7 +9,6 @@ GitHub repo：https://github.com/FengLingYu7563/FengLingYu-game_bot
 
 ## 專案結構
 - `main.py` — 入口點，Bot 初始化、extension 載入、uptime 追蹤
-- `config.py` — 環境變數載入
 - `database.py` — Firestore 資料庫操作（非 SQLite）
 - `chat/gemini_api.py` — Gemini AI 聊天模組
 - `chat/openai_api.py` — OpenAI GPT 聊天模組
@@ -37,13 +36,22 @@ GitHub repo：https://github.com/FengLingYu7563/FengLingYu-game_bot
 Obsidian vault：未使用
 專案駕駛艙：未使用
 
+## Branch 與 Push 規則
+- 平時在 `main` branch 開發（公開版，無敏感檔案）
+- 收工要 push 時：
+  1. `git push public main` → 公開 repo
+  2. `git checkout private && git merge main`
+  3. `git add -f data/system_rule.txt data/keyword_list.txt`（若有修改）
+  4. `git commit -m "sync"` → `git push origin private:main` → 私人 repo
+  5. `git checkout main`
+
 ## 同步規則
 開工時：讀本檔、檢查 Git 狀態、不自動 pull/commit/push
-收工時：整理進度/待辦/重要決策到本檔、必要時 commit + push
+收工時：整理進度/待辦/重要決策到本檔、依上方 Branch 規則 push
 
 ## 上次做到哪
-最後動作：2026-05-18 AI 聊天邏輯大幅重構
-狀態：已推送至 public repo，等待實機測試回饋
+最後動作：2026-05-18 整理 repo 結構、刪除死碼
+狀態：兩個 repo 均已同步，等待實機測試回饋
 
 已完成功能：
 - 吵架迴圈修正：30分鐘超時 + 機器人對戰最多回覆3次
@@ -54,7 +62,8 @@ Obsidian vault：未使用
 - Prompt 改善：temperature 0.85、禁慣用開頭、限制回覆長度1~2句
 - 全形括號 （） 過濾修正
 - Prompt Injection 過濾清單整合至 keyword_list.txt
-- 公開 repo 建立：https://github.com/FengLingYu7563/FengLingYu-game_bot-public
+- 刪除未使用的 config.py
+- 公開 repo 改用 discord-bot-demo（含正式 README、LICENSE、deploy.md）
 
 ## 待辦事項
 - 實機測試：確認心情系統、observations 累積是否正常運作
@@ -63,7 +72,7 @@ Obsidian vault：未使用
 ## 重要決策
 - commit 不加 Co-Authored-By Claude
 - system_rule.txt 不進版本控制（.gitignore 保護）
-- 公私 repo 並存：私人 origin + 公開 public remote
+- 公私 repo 並存：私人 origin (FengLingYu-game_bot) + 公開 public (discord-bot-demo)
 - 機器人對戰結束條件：30分鐘超時 OR 回覆滿3次（二擇一先到先生效）
 - 歷史過期時間與心情重置時間統一為 20 分鐘
 
