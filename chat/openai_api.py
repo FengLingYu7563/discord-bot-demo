@@ -16,7 +16,6 @@ msg_cooldowns = []
 # 路徑設定
 KEYWORD_LIST_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "keyword_list.txt")
 SYSTEM_RULE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "system_rule.txt")
-PROMPT_INJECTION_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "prompt_injection_list.txt")
 
 # 吵架模式設定
 WAR_TIMEOUT = 30 * 60  # 30 分鐘後自動解除機器人戰爭狀態
@@ -49,12 +48,6 @@ def read_keyword_filter():
     except FileNotFoundError:
         return []
 
-def read_prompt_injection_list():
-    try:
-        with open(PROMPT_INJECTION_PATH, 'r', encoding='UTF-8') as f:
-            return [line.strip() for line in f if line.strip() and not line.startswith('#')]
-    except FileNotFoundError:
-        return []
 
 def read_system_rule():
     try:
@@ -68,7 +61,7 @@ def setup_openai_api(bot: commands.Bot, api_key: str):
         print("未提供 OpenAI API 金鑰。")
         return
 
-    prompt_injection_keywords = read_keyword_filter() + read_prompt_injection_list()
+    prompt_injection_keywords = read_keyword_filter()
     my_system_instruction = read_system_rule()
 
     try:

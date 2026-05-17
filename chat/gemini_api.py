@@ -22,7 +22,6 @@ MOOD_INSTRUCTIONS = {
 
 KEYWORD_LIST_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "keyword_list.txt")
 SYSTEM_RULE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "system_rule.txt")
-PROMPT_INJECTION_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "prompt_injection_list.txt")
 
 def parse_gemini_response(text):
     if '<DATABASE_UPDATE>' in text:
@@ -43,12 +42,6 @@ def read_keyword_filter():
         print(f"找不到 {KEYWORD_LIST_PATH}，使用空關鍵字清單。")
         return []
 
-def read_prompt_injection_list():
-    try:
-        with open(PROMPT_INJECTION_PATH, 'r', encoding='UTF-8') as f:
-            return [line.strip() for line in f if line.strip() and not line.startswith('#')]
-    except FileNotFoundError:
-        return []
 
 def read_system_rule():
     try:
@@ -63,7 +56,7 @@ def setup_gemini_api(bot: commands.Bot, api_key: str):
         print("提供 Gemini API 金鑰。")
         return
 
-    prompt_injection_keywords = read_keyword_filter() + read_prompt_injection_list()
+    prompt_injection_keywords = read_keyword_filter()
     my_system_instruction = read_system_rule()
 
     safety_settings = [
