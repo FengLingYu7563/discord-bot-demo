@@ -7,7 +7,7 @@ import time
 import random
 
 # model
-from database import get_user_profile, update_user_profile, add_to_history
+from database import get_user_profile, update_user_profile, add_exchange
 
 msg_cooldowns = []
 
@@ -115,8 +115,7 @@ def setup_gemini_api(bot: commands.Bot, api_key: str):
             raw_history = user_profile.get('recent_history', []) if user_profile else []
             recent_history = [h for h in raw_history if now - h.get('t', 0) <= MOOD_TIMEOUT]
             for h in recent_history:
-                role_label = "[我說過]" if h.get('r') == 'bot' else "[對方說過]"
-                history_context += f"{role_label}: {h.get('m')}\n"
+                history_context += f"[對方說過]: {h.get('user', '')}\n[我說過]: {h.get('bot', '')}\n"
 
             # --- 心情模式（連動 20 分鐘判斷：有近期訊息就沿用，否則重新抽） ---
             last_mood = user_profile.get('current_mood') if user_profile else None
@@ -173,8 +172,7 @@ def setup_gemini_api(bot: commands.Bot, api_key: str):
             msg_cooldowns.append(time.time())
 
             if not is_war:
-                add_to_history(user_id, "user", user_input)
-                add_to_history(user_id, "bot", full_response)
+                add_exchange(user_id, user_input, full_response)
 
         except Exception as e:
             print(f"Gemini API 發生錯誤: {e}")

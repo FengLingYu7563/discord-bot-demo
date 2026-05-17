@@ -98,11 +98,9 @@ def get_user_profile(user_id):
         print(f"獲取用戶資料失敗: {e}")
         return None
 
-def add_to_history(user_id, role, content):
-    """
-    紀錄最近對話 4句
-    role: 'bot' (自己) 或 'user' (對方)
-    """
+def add_exchange(user_id, user_input, bot_response):
+    """一問一答存成一條紀錄，同時清除 20 分鐘以外的舊資料，最多保留 5 則"""
+    import time
     db = get_thread_local_db()
     try:
         doc_ref = db.collection('user_profiles').document(str(user_id))
@@ -110,12 +108,14 @@ def add_to_history(user_id, role, content):
         if doc.exists:
             profile = doc.to_dict()
             history = profile.get('recent_history', [])
-            
-            history.append({"r": role, "m": content, "t": __import__('time').time()})
+
+            now = time.time()
+            history = [h for h in history if now - h.get('t', 0) <= 20 * 60]
+            history.append({"user": user_input, "bot": bot_response, "t": now})
 
             if len(history) > 5:
                 history = history[-5:]
-            
+
             doc_ref.update({'recent_history': history})
     except Exception as e:
         print(f"紀錄對話歷史失敗: {e}")

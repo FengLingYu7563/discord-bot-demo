@@ -8,7 +8,7 @@ import time
 import random
 
 # 引入你的資料庫邏輯
-from database import get_user_profile, update_user_profile, add_to_history
+from database import get_user_profile, update_user_profile, add_exchange
 
 # 全域變數：紀錄發話時間戳記
 msg_cooldowns = []
@@ -105,8 +105,7 @@ def setup_openai_api(bot: commands.Bot, api_key: str):
             raw_history = user_profile.get('recent_history', []) if user_profile else []
             recent_history = [h for h in raw_history if now - h.get('t', 0) <= MOOD_TIMEOUT]
             for h in recent_history:
-                role_label = "[我說過]" if h.get('r') == 'bot' else "[對方說過]"
-                history_context += f"{role_label}: {h.get('m')}\n"
+                history_context += f"[對方說過]: {h.get('user', '')}\n[我說過]: {h.get('bot', '')}\n"
 
             current_role = user_profile.get('current_role', '')
             if user_profile:
@@ -225,11 +224,9 @@ def setup_openai_api(bot: commands.Bot, api_key: str):
             await message.channel.send(full_response)
             msg_cooldowns.append(time.time())
 
-            # --- 紀錄邏輯判定 ---
             # 只有機器人吵架會記錄，使用者吵架不記錄
             if is_bot_war or not is_user_war:
-                add_to_history(user_id, "user", user_input)
-                add_to_history(user_id, "bot", full_response)
+                add_exchange(user_id, user_input, full_response)
 
         except Exception as e:
             print(f"❌ OpenAI API 錯誤: {e}")
