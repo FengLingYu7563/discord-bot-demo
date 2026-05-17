@@ -208,8 +208,8 @@ def setup_openai_api(bot: commands.Bot, api_key: str):
                 )
 
                 raw_response = response.choices[0].message.content
-                # 強制在程式端過濾掉括號內心戲（雙重保險）
-                raw_response = re.sub(r'\(.*?\)', '', raw_response).strip()
+                # 強制過濾半形與全形括號內心戲（雙重保險）
+                raw_response = re.sub(r'\(.*?\)|（.*?）', '', raw_response).strip()
                 full_response, data_to_update = parse_openai_response(raw_response)
                 if data_to_update:
                     new_data = {}
