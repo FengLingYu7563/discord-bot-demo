@@ -9,6 +9,7 @@ serviceAccountKey.json
 cookies.txt
 
 data/system_rule.txt
+data/keyword_list.txt
 
 # 由專案初始化補充
 desktop.ini
