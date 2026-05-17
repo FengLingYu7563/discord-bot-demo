@@ -116,20 +116,22 @@ def setup_gemini_api(bot: commands.Bot, api_key: str):
             user_id = str(message.author.id)
             user_profile = get_user_profile(user_id)
             
+            # --- 獲取對話紀錄（只取 20 分鐘內的訊息）---
             history_context = ""
-            if user_profile and 'recent_history' in user_profile:
-                for h in user_profile['recent_history']:
-                    role_label = "[我說過]" if h.get('r') == 'bot' else "[對方說過]"
-                    history_context += f"{role_label}: {h.get('m')}\n"
+            now = time.time()
+            raw_history = user_profile.get('recent_history', []) if user_profile else []
+            recent_history = [h for h in raw_history if now - h.get('t', 0) <= MOOD_TIMEOUT]
+            for h in recent_history:
+                role_label = "[我說過]" if h.get('r') == 'bot' else "[對方說過]"
+                history_context += f"{role_label}: {h.get('m')}\n"
 
-            # --- 心情模式 ---
+            # --- 心情模式（連動 20 分鐘判斷：有近期訊息就沿用，否則重新抽） ---
             last_mood = user_profile.get('current_mood') if user_profile else None
-            last_mood_time = user_profile.get('mood_time', 0) if user_profile else 0
-            if last_mood and time.time() - last_mood_time <= MOOD_TIMEOUT:
+            if last_mood and recent_history:
                 current_mood = last_mood
             else:
                 current_mood = random.choices(MOOD_POOL, weights=MOOD_WEIGHTS)[0]
-                update_user_profile(user_id, {"current_mood": current_mood, "mood_time": time.time()})
+                update_user_profile(user_id, {"current_mood": current_mood})
             mood_instruction = MOOD_INSTRUCTIONS[current_mood]
 
             if user_profile:

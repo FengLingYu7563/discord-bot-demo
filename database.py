@@ -111,8 +111,8 @@ def add_to_history(user_id, role, content):
             profile = doc.to_dict()
             history = profile.get('recent_history', [])
             
-            history.append({"r": role, "m": content})
-            
+            history.append({"r": role, "m": content, "t": __import__('time').time()})
+
             if len(history) > 4:
                 history = history[-4:]
             
